@@ -1,0 +1,36 @@
+version: '3'
+services:
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGODB_NAME}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASS}
+    ports:
+      - "${MONGODB_PORT}:${MONGODB_PORT}"
+    volumes:
+      - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
+      - mongodb-volume:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:${MONGODB_PORT}/test --quiet | grep 1
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  server:
+    container_name: server
+    build:
+      context: .
+      dockerfile: Dockerfile
+    links:
+      - mongo
+    depends_on:
+      mongo:
+        condition: service_healthy
+    expose:
+      - "${PORT}"
+    ports:
+      - "${PORT}:${PORT}"
+volumes:
+  mongodb-volume:

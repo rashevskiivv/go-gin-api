@@ -2,21 +2,25 @@ package books
 
 import (
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+	"github.com/rashevskiivv/go-gin-api/pkg/common/configs"
+	"go.mongodb.org/mongo-driver/mongo"
+	"log"
 )
 
-type handler struct {
-	DB *gorm.DB
+const (
+	CollectionBooks = "books"
+)
+
+func RegisterRoutes(r *gin.Engine) {
+	routes := r.Group("/books")
+	routes.POST("/", AddBook)
+	routes.GET("/", GetBooks)
+	routes.GET("/:id", GetBook)
+	routes.PUT("/:id", UpdateBook)
+	routes.DELETE("/:id", DeleteBook)
+	log.Println("Routes registered successfully")
 }
 
-func RegisterRoutes(r *gin.Engine, db *gorm.DB) {
-	h := &handler{
-		DB: db,
-	}
-	routes := r.Group("/books")
-	routes.POST("/", h.AddBook)
-	routes.GET("/", h.GetBooks)
-	routes.GET("/:id", h.GetBook)
-	routes.PUT("/:id", h.UpdateBook)
-	routes.DELETE("/:id", h.DeleteBook)
+func getCollection(collectionName string) *mongo.Collection {
+	return configs.GetCollection(collectionName)
 }

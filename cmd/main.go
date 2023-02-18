@@ -3,27 +3,28 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/rashevskiivv/go-gin-api/pkg/books"
-	"github.com/rashevskiivv/go-gin-api/pkg/common/db"
-	"github.com/spf13/viper"
+	"github.com/rashevskiivv/go-gin-api/pkg/common/configs"
 	"log"
 )
 
 func main() {
-	viper.SetConfigFile("./pkg/common/envs/.env")
-	err := viper.ReadInConfig()
+	log.Println("Server started")
+	err := configs.LoadConfig()
+	if err != nil {
+		log.Fatalln("Failed at config .env", err)
+	}
+
+	r := gin.Default()
+	log.Println("Router created")
+
+	err = configs.ConnectDB()
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	port := viper.Get("PORT").(string)
-	dbUrl := viper.Get("DB_URL").(string)
+	books.RegisterRoutes(r)
 
-	r := gin.Default()
-	h := db.Init(dbUrl)
-
-	books.RegisterRoutes(r, h)
-
-	err = r.Run(port)
+	err = r.Run(":" + configs.GetConfig().Port)
 	if err != nil {
 		log.Fatalln(err)
 	}

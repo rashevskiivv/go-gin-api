@@ -3,16 +3,27 @@ package books
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/rashevskiivv/go-gin-api/pkg/common/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"log"
 	"net/http"
 )
 
-func (h handler) GetBook(c *gin.Context) {
+func GetBook(c *gin.Context) {
 	id := c.Param("id")
 
 	var book models.Book
-	if result := h.DB.First(&book, id); result.Error != nil {
-		_ = c.AbortWithError(http.StatusNotFound, result.Error)
+
+	objId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		log.Println(err)
+	}
+
+	err = getCollection(CollectionBooks).FindOne(c, bson.M{"id": objId}).Decode(&book)
+	if err != nil {
+		_ = c.AbortWithError(http.StatusNotFound, err)
+		log.Println(err)
 		return
 	}
-	c.JSON(http.StatusOK, &book)
+	c.JSON(http.StatusOK, book)
 }
