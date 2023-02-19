@@ -1,4 +1,4 @@
-version: '3'
+version: "3.8"
 services:
   mongo:
     container_name: mongo
@@ -14,10 +14,12 @@ services:
       - ./init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh:ro
       - mongodb-volume:/data/db
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:${MONGODB_PORT}/test --quiet | grep 1
-      interval: 10s
+      test: echo 'db.runCommand("ping").ok' | mongosh ${MONGODB_HOST}:${MONGODB_PORT}/test --quiet | grep 1
+#      test: echo 'db.runCommand("ping").ok' | echo 'db.runCommand({serverStatus:1}).ok' | mongosh ${MONGODB_HOST}:${MONGODB_PORT}/test --quiet | grep 1
+      interval: 5s
       timeout: 5s
       retries: 5
+#      start_period: 30s
   server:
     container_name: server
     build:
